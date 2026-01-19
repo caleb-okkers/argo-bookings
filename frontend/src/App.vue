@@ -27,6 +27,7 @@
 
   <p class="time">
     {{ formatDate(appt.start_time) }} <br />
+    <span class="weekday">{{ formatWeekday(appt.start_time) }}</span><br />
     {{ formatTime(appt.start_time) }} – {{ formatTime(appt.end_time) }}
   </p>
 
@@ -133,6 +134,26 @@
   </div>
 </div>
 
+<div v-if="showDeleteModal" class="modal-overlay">
+  <div class="modal">
+    <h2>Cancel Appointment</h2>
+
+    <p style="margin-top: 0.5rem; color: #555;">
+      Are you sure you want to cancel this appointment?
+    </p>
+
+    <div class="modal-actions">
+      <button class="cancel" @click="cancelDelete">
+        No, keep it
+      </button>
+      <button class="save" @click="confirmDelete">
+        Yes, cancel
+      </button>
+    </div>
+  </div>
+</div>
+
+
   </div>
 
   
@@ -228,10 +249,22 @@ const startEdit = (appt) => {
 };
 
 const deleteAppointment = async (id) => {
-  if (!confirm("Cancel this appointment?")) return;
-  await api.delete(`/appointments/${id}`);
+  deleteId.value = id;
+  showDeleteModal.value = true;
+};
+
+const confirmDelete = async () => {
+  await api.delete(`/appointments/${deleteId.value}`);
+  showDeleteModal.value = false;
+  deleteId.value = null;
   fetchAppointments();
 };
+
+const cancelDelete = () => {
+  showDeleteModal.value = false;
+  deleteId.value = null;
+};
+
 
 
 const openEditModal = (appt) => {
@@ -273,6 +306,14 @@ const formatDate = (date) =>
 
 const formatTime = (date) =>
   new Date(date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+  const formatWeekday = (date) =>
+  new Date(date).toLocaleDateString(undefined, { weekday: "long" });
+
+
+const showDeleteModal = ref(false);
+const deleteId = ref(null);
+
 </script>
 
 <style>
