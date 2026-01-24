@@ -9,10 +9,24 @@ resource "aws_lb" "alb" {
 }
 
 resource "aws_lb_target_group" "backend" {
-  name     = "backend-tg"
-  port     = 3000
+  name     = "backend-tg-4000"   # unique name
+  port     = 4000              # <-- updated
   protocol = "HTTP"
   vpc_id   = aws_vpc.main.id
+
+  health_check {
+    path                = "/health"
+    protocol            = "HTTP"
+    matcher             = "200"
+    interval            = 30
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 5
+  }
+
+    lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_lb_listener" "http" {
@@ -22,6 +36,7 @@ resource "aws_lb_listener" "http" {
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.backend.arn
+    target_group_arn = aws_lb_target_group.backend.arn  # points to new 4000 TG
   }
 }
+

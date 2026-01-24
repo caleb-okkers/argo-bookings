@@ -2,7 +2,7 @@
 const app = require("./app");
 require("dotenv").config();
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 
 // Bind to 0.0.0.0 so Docker can expose it
 app.listen(PORT, "0.0.0.0", () => {

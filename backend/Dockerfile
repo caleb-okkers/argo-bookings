@@ -14,7 +14,7 @@ RUN npm install --production
 COPY . .
 
 # Expose port (same as your app)
-EXPOSE 3000
+EXPOSE 4000
 
 # Command to run the app
 CMD ["node", "server.js"]

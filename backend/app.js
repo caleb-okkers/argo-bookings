@@ -23,6 +23,12 @@ const toMySQLDateTime = (isoString) => {
     .replace("T", " ");
 };
 
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
+
+
 // ------------------------
 // GET all appointments
 // ------------------------
@@ -134,6 +140,15 @@ app.delete("/appointments/:id", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Delete failed" });
+  }
+});
+
+app.get("/db-check", async (req, res) => {
+  try {
+    const [rows] = await db.query("SELECT 1");
+    res.status(200).json({ status: "DB connected", result: rows });
+  } catch (err) {
+    res.status(500).json({ status: "DB connection failed", error: err.message });
   }
 });
 
