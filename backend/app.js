@@ -1,17 +1,32 @@
-// backend/app.js
 const express = require("express");
 const cors = require("cors");
 const db = require("./db");
 
 const app = express();
 
-app.use(cors({
-  origin: "http://localhost:5173",
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type"]
-}));
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.FRONTEND_ORIGIN, // set this on EC2 via env
+].filter(Boolean);
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // allow server-to-server/no-origin requests (curl, health checks)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type"],
+    credentials: false,
+  })
+);
 
 app.use(express.json());
+
 
 // ------------------------
 // Helper: ISO → MySQL DATETIME

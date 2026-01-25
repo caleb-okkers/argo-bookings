@@ -61,7 +61,7 @@ done
 
 # Retry loop to pull Docker image
 for i in {1..5}; do
-  if docker pull 653263736678.dkr.ecr.eu-west-1.amazonaws.com/argo-bookings-backend:1.0.3 >> $LOGFILE 2>&1; then
+  if docker pull 653263736678.dkr.ecr.eu-west-1.amazonaws.com/argo-bookings-backend:1.0.4 >> $LOGFILE 2>&1; then
     echo "$(date) - Docker image pulled successfully" >> $LOGFILE
     break
   else
@@ -85,8 +85,9 @@ docker run -d --name backend \
   -e DB_PASSWORD="$DB_PASSWORD" \
   -e DB_NAME=bookings \
   -e DB_PORT=3306 \
+  -e FRONTEND_ORIGIN="https://d370h72f8ty4et.cloudfront.net" \
   -e PORT=4000 \
-  653263736678.dkr.ecr.eu-west-1.amazonaws.com/argo-bookings-backend:1.0.3 \
+  653263736678.dkr.ecr.eu-west-1.amazonaws.com/argo-bookings-backend:1.0.4 \
   >> $LOGFILE 2>&1
 
 echo "$(date) - Backend container started" >> $LOGFILE
