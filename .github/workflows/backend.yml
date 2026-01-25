@@ -1,0 +1,50 @@
+name: Backend - Build & Deploy (ECR latest + ASG refresh)
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push backend image
+        env:
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          ECR_REPO: ${{ secrets.ECR_REPO }}
+        run: |
+          set -euo pipefail
+          IMAGE_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}"
+
+          docker build -t "${ECR_REPO}:latest" ./backend
+          docker tag "${ECR_REPO}:latest" "${IMAGE_URI}:latest"
+          docker push "${IMAGE_URI}:latest"
+
+      - name: Refresh ASG instances
+        env:
+          ASG_NAME: ${{ secrets.ASG_NAME }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          set -euo pipefail
+          aws autoscaling start-instance-refresh \
+            --region "${AWS_REGION}" \
+            --auto-scaling-group-name "${ASG_NAME}" \
+            --preferences MinHealthyPercentage=0,InstanceWarmup=180
